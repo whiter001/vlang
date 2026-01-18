@@ -139,7 +139,7 @@ fn (pr &HttpProxy) dial(host string) !&net.TcpConn {
 		tcp.write(pr.build_proxy_headers(host).bytes())!
 		mut bf := []u8{len: 4096}
 
-		for { mut small_buf := []u8{len: 1}; tcp.read(mut small_buf)!; bf << small_buf[0]; if bf.bytestr().contains("\r\n\r\n") { break } }
+		for { mut small_buf := []u8{len: 1}; tcp.read(mut small_buf) or { break }; bf << small_buf[0]; if bf.bytestr().contains("\r\n\r\n") { break } }
 		return tcp
 	} else if pr.scheme == 'socks5' {
 		return socks.socks5_dial(pr.host, host, pr.username, pr.password)!
@@ -153,7 +153,7 @@ fn (pr &HttpProxy) ssl_dial(host string) !&ssl.SSLConn {
 		mut tcp := net.dial_tcp(pr.host)!
 		tcp.write(pr.build_proxy_headers(host).bytes())!
 		mut bf := []u8{len: 4096}
-		for { mut small_buf := []u8{len: 1}; tcp.read(mut small_buf)!; bf << small_buf[0]; if bf.bytestr().contains("\r\n\r\n") { break } }
+		for { mut small_buf := []u8{len: 1}; tcp.read(mut small_buf) or { break }; bf << small_buf[0]; if bf.bytestr().contains("\r\n\r\n") { break } }
 		if !bf.bytestr().contains('HTTP/1.1 200') {
 			return error('ssl dial error: ${bf.bytestr()}')
 		}

@@ -655,7 +655,33 @@ fn (t &Transformer) get_var_type_name(name string) string {
 		}
 	}
 	if typ is types.Primitive {
-		return typ.name()
+		if typ.props.has(.boolean) {
+			return 'bool'
+		} else if typ.props.has(.untyped) {
+			if typ.props.has(.integer) {
+				return 'int_literal'
+			} else if typ.props.has(.float) {
+				return 'float_literal'
+			}
+		} else if typ.props.has(.integer) {
+			if typ.props.has(.unsigned) {
+				return 'u${typ.size}'
+			} else {
+				match typ.size {
+					1 { return 'i8' }
+					2 { return 'i16' }
+					4 { return 'int' }
+					8 { return 'i64' }
+					else { return 'i${typ.size * 8}' }
+				}
+			}
+		} else if typ.props.has(.float) {
+			match typ.size {
+				4 { return 'f32' }
+				else { return 'f64' }
+			}
+		}
+		return 'unknown_primitive'
 	}
 	// Some malformed/self-host transitional types can carry incomplete payloads.
 	// Avoid forcing `Type.name()` on those values here.

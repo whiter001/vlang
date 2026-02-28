@@ -1008,7 +1008,7 @@ fn test_utime() {
 }
 
 fn test_utime_y2038() {
-	// Regression test for the Year 2038 problem (github issue #26664).
+	// Regression test for the Year 2038 problem (GitHub issue #26664).
 	// Timestamps beyond 2038-01-19 03:14:07 UTC overflow a 32-bit int.
 	filename := './test_utime_y2038.txt'
 	mut f := os.create(filename) or { panic(err) }

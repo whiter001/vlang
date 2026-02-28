@@ -1038,7 +1038,7 @@ fn (decoder &Decoder) parse_string_as_float(str string) !f64 {
 		return error('empty string cannot be parsed as number')
 	}
 	first := str[0]
-	if first != `-` && first != `+` && (first < `0` || first > `9`) {
+	if first != `-` && (first < `0` || first > `9`) {
 		return error('string is not a valid number: ${str}')
 	}
 	return strconv.atof_quick(str)

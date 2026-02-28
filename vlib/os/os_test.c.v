@@ -1003,7 +1003,24 @@ fn test_utime() {
 	f.write_string(hello) or { panic(err) }
 	atime := time.now().add_days(2).unix()
 	mtime := time.now().add_days(4).unix()
-	os.utime(filename, int(atime), int(mtime)) or { panic(err) }
+	os.utime(filename, atime, mtime) or { panic(err) }
+	assert os.file_last_mod_unix(filename) == mtime
+}
+
+fn test_utime_y2038() {
+	// Regression test for the Year 2038 problem (github issue #26664).
+	// Timestamps beyond 2038-01-19 03:14:07 UTC overflow a 32-bit int.
+	filename := './test_utime_y2038.txt'
+	mut f := os.create(filename) or { panic(err) }
+	defer {
+		f.close()
+		os.rm(filename) or { panic(err) }
+	}
+	f.write_string('y2038') or { panic(err) }
+	// 2040-01-01 00:00:00 UTC = 2208988800
+	atime := i64(2208988800)
+	mtime := i64(2208988800)
+	os.utime(filename, atime, mtime) or { panic(err) }
 	assert os.file_last_mod_unix(filename) == mtime
 }
 

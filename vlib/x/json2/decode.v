@@ -895,21 +895,94 @@ fn (mut decoder Decoder) decode_enum[T](mut val T) ! {
 fn (mut decoder Decoder) decode_number[T](val &T) ! {
 	number_info := decoder.current_node.value
 	str := decoder.json[number_info.position..number_info.position + number_info.length]
+	is_float_str := str.contains_any('eE')
 	$match T.unaliased_typ {
-		i8 { *val = strconv.atoi8(str)! }
-		i16 { *val = strconv.atoi16(str)! }
-		i32 { *val = strconv.atoi32(str)! }
-		i64 { *val = strconv.atoi64(str)! }
-		u8 { *val = strconv.atou8(str)! }
-		u16 { *val = strconv.atou16(str)! }
-		u32 { *val = strconv.atou32(str)! }
-		u64 { *val = strconv.atou64(str)! }
-		int { *val = strconv.atoi(str)! }
-		isize { *val = isize(strconv.atoi64(str)!) }
-		usize { *val = usize(strconv.atou64(str)!) }
-		f32 { *val = f32(strconv.atof_quick(str)) }
-		f64 { *val = strconv.atof_quick(str) }
-		$else { return error('`decode_number` can not decode ${T.name} type') }
+		i8 {
+			if is_float_str {
+				*val = i8(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atoi8(str)!
+			}
+		}
+		i16 {
+			if is_float_str {
+				*val = i16(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atoi16(str)!
+			}
+		}
+		i32 {
+			if is_float_str {
+				*val = i32(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atoi32(str)!
+			}
+		}
+		i64 {
+			if is_float_str {
+				*val = i64(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atoi64(str)!
+			}
+		}
+		u8 {
+			if is_float_str {
+				*val = u8(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atou8(str)!
+			}
+		}
+		u16 {
+			if is_float_str {
+				*val = u16(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atou16(str)!
+			}
+		}
+		u32 {
+			if is_float_str {
+				*val = u32(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atou32(str)!
+			}
+		}
+		u64 {
+			if is_float_str {
+				*val = u64(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atou64(str)!
+			}
+		}
+		int {
+			if is_float_str {
+				*val = int(strconv.atof_quick(str))
+			} else {
+				*val = strconv.atoi(str)!
+			}
+		}
+		isize {
+			if is_float_str {
+				*val = isize(strconv.atof_quick(str))
+			} else {
+				*val = isize(strconv.atoi64(str)!)
+			}
+		}
+		usize {
+			if is_float_str {
+				*val = usize(strconv.atof_quick(str))
+			} else {
+				*val = usize(strconv.atou64(str)!)
+			}
+		}
+		f32 {
+			*val = f32(strconv.atof_quick(str))
+		}
+		f64 {
+			*val = strconv.atof_quick(str)
+		}
+		$else {
+			return error('`decode_number` can not decode ${T.name} type')
+		}
 	}
 }
 
@@ -923,27 +996,31 @@ fn (mut decoder Decoder) decode_number_from_string[T]() !T {
 	}
 	str := decoder.json[string_info.position + 1..string_info.position + string_info.length - 1]
 	$if T.unaliased_typ is i8 {
-		return T(strconv.atoi8(str)!)
+		return T(strconv.atoi8(str) or { return T(i8(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is i16 {
-		return T(strconv.atoi16(str)!)
+		return T(strconv.atoi16(str) or { return T(i16(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is i32 {
-		return T(strconv.atoi32(str)!)
+		return T(strconv.atoi32(str) or { return T(i32(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is i64 {
-		return T(strconv.atoi64(str)!)
+		return T(strconv.atoi64(str) or { return T(i64(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is u8 {
-		return T(strconv.atou8(str)!)
+		return T(strconv.atou8(str) or { return T(u8(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is u16 {
-		return T(strconv.atou16(str)!)
+		return T(strconv.atou16(str) or { return T(u16(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is u32 {
-		return T(strconv.atou32(str)!)
+		return T(strconv.atou32(str) or { return T(u32(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is u64 {
-		return T(strconv.atou64(str)!)
+		return T(strconv.atou64(str) or { return T(u64(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is int {
-		return T(strconv.atoi(str)!)
+		return T(strconv.atoi(str) or { return T(int(decoder.parse_string_as_float(str)!)) })
 	} $else $if T.unaliased_typ is isize {
-		return T(isize(strconv.atoi64(str)!))
+		return T(isize(strconv.atoi64(str) or {
+			return T(isize(decoder.parse_string_as_float(str)!))
+		}))
 	} $else $if T.unaliased_typ is usize {
-		return T(usize(strconv.atou64(str)!))
+		return T(usize(strconv.atou64(str) or {
+			return T(usize(decoder.parse_string_as_float(str)!))
+		}))
 	} $else $if T.unaliased_typ is f32 {
 		return T(f32(strconv.atof_quick(str)))
 	} $else $if T.unaliased_typ is f64 {
@@ -951,4 +1028,18 @@ fn (mut decoder Decoder) decode_number_from_string[T]() !T {
 	} $else {
 		return error('`decode_number_from_string` cannot decode ${T.name} type')
 	}
+}
+
+// parse_string_as_float tries to parse a string as a float number.
+// Returns an error if the string doesn't start with a digit or minus sign,
+// which prevents non-numeric strings from being silently converted to 0.
+fn (decoder &Decoder) parse_string_as_float(str string) !f64 {
+	if str.len == 0 {
+		return error('empty string cannot be parsed as number')
+	}
+	first := str[0]
+	if first != `-` && (first < `0` || first > `9`) {
+		return error('string is not a valid number: ${str}')
+	}
+	return strconv.atof_quick(str)
 }

@@ -171,8 +171,8 @@ pub fn chdir(s string) ! {
 	#try { $process.chdir(s.str); } catch (e) { return error(new string('' + s)) }
 }
 
-pub fn file_last_mod_unix(path string) int {
-	mtime := 0
+pub fn file_last_mod_unix(path string) i64 {
+	mtime := i64(0)
 	#mtime.val = Math.floor($fs.lstatSync(path.str).mtime.getTime() / 1000)
 
 	return mtime

@@ -1797,17 +1797,27 @@ fn (mut g Gen) infix_expr_left_shift_op(node ast.InfixExpr) {
 					fixed_info := elem_sym.info as ast.ArrayFixed
 					tmpvar := g.expr_with_var(node.right, elem_type, false)
 					g.fixed_array_var_init(tmpvar, false, fixed_info.elem_type, fixed_info.size)
-				} else {
+				} else if needs_explicit_deref {
+					// `needs_explicit_deref` is only true for an Ident RHS, whose
+					// generation never rewinds the output buffer, so capturing it
+					// with expr_string_with_cast() is safe here.
 					rhs_expr := g.expr_string_with_cast(node.right, right.typ, elem_type)
 					// Don't dereference when the expression was cast via a
 					// `_to_sumtype_` function, since that function already takes
 					// a pointer parameter and returns a value (not a pointer).
-					if needs_explicit_deref && !rhs_expr.trim_space().starts_with('*')
-						&& !rhs_expr.contains('_to_sumtype_')
+					if !rhs_expr.trim_space().starts_with('*') && !rhs_expr.contains('_to_sumtype_')
 						&& !rhs_expr.contains('_to_Interface_') {
 						g.write('*')
 					}
 					g.write(rhs_expr)
+				} else {
+					// Generate directly, without capturing the expression to a string.
+					// Expressions like `m[k] or { ... }` rewind the output buffer to
+					// hoist their temporary declarations before the enclosing statement,
+					// which makes the position captured by expr_string_with_cast() stale,
+					// and its cut_to()/trim_space() could then corrupt the generated code
+					// (see the `map[string]Type` + nested `or` case in vlib/v3).
+					g.expr_with_cast(node.right, right.typ, elem_type)
 				}
 				if needs_clone {
 					g.write(')')

@@ -436,6 +436,15 @@ fn test_read_file_on_directory_returns_error() {
 	assert false, 'read_file on a directory should fail'
 }
 
+fn test_read_bytes_on_directory_returns_error() {
+	// Same expectation as test_read_file_on_directory_returns_error, through
+	// the read_bytes path, which shares find_cfile_size.
+	os.read_bytes(tfolder) or {
+		return
+	}
+	assert false, 'read_bytes on a directory should fail'
+}
+
 fn test_open_append() {
 	os.rm(tfile) or {}
 	mut f1 := os.open_append(tfile)!

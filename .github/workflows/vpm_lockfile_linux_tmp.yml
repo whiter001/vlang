@@ -1,0 +1,31 @@
+# TEMPORARY: fork-local verification of the vpm lockfile branch on Linux.
+# The stock vpm_ci.yml gates its ubuntu test jobs on the windows setup job,
+# which is currently broken upstream (vc snapshot 8af812fe fails makev.bat).
+# Delete this file before opening the upstream PR.
+name: TMP vpm linux check
+
+on:
+  push:
+    branches:
+      - vpm-lockfile-linux-ci
+
+permissions:
+  contents: read
+
+jobs:
+  test-vpm-linux:
+    strategy:
+      matrix:
+        cc: [tcc, gcc, clang]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Build V
+        run: make -j4 && ./v doctor
+      - name: Vet-build vpm with warnings as errors
+        run: ./v -W -N cmd/tools/vpm
+      - name: Test vpm
+        run: ./v -cc ${{ matrix.cc }} -d network test cmd/tools/vpm
